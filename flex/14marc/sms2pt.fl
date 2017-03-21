@@ -1,0 +1,13 @@
+%option noyywrap
+%%
+qq {printf("qualquer");}
+mrd {printf("merda");}
+pq {printf("porque");}
+q {printf("que");}
+[a-zA-Z]+	{ECHO;}
+%%
+int main(int argc, char* argv[]){
+	if(argc==2) yyin = fopen(argv[1],"r");
+	yylex();
+	return 0;
+}

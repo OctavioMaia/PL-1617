@@ -1,0 +1,5 @@
+#isto e um comentario
+#outro
+cenas #teste
+{print "String com # incluido"}
+print "String" #comentario com "String" :)

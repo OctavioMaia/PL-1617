@@ -1,0 +1,14 @@
+%option noyywrap
+Lm	á|é|í|ó|ú|ã|õ|ç|[a-zA-Z]
+A 	([A-Z].|Sr.|Sra.|Dr)\.
+M	[A-Z]{Lm}+|{A}
+D 	dos|de|da|do|das
+F 	[.|?-][ \t\n]+	
+%%
+{M}(\ {M}|\ {D}\ {M})*	{printf("{%s}",yytext);}
+{F}{M}					{ECHO;}
+%%
+int main(){
+	yylex();
+	return 0;
+}
