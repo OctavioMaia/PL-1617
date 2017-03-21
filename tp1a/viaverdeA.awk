@@ -1,7 +1,7 @@
-BEGIN {FS = ">|</"}
+BEGIN 					{FS = ">|</"}
 
-/<DATA_ENTRADA>[^null]/ {a[$2]++}
+/<DATA_ENTRADA>[^null]/	{a[$2]++}
 
 END {
-	for(i in a) print i a[i]
+	for(i in a) print(i,a[i])
 }

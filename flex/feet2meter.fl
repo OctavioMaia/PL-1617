@@ -1,0 +1,11 @@
+%option noyywrap
+letra [a-zA-Z]|â|ç|â
+%%
+	int n;
+[0-9]+[ \t]*(ft|pes) {sscanf(yytext,"%d",&n); printf("%.1fm",(n/3.0));}
+%%
+int main(int argc, char* argv[]){
+	if(argc==2) yyin = fopen(argv[1],"r");
+	yylex();
+	return 0;
+}
