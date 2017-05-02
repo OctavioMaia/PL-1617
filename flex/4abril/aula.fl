@@ -1,0 +1,70 @@
+%option noyywrap
+%{
+		FILE* ftex;
+		void beginLatex();
+		void endLatex();
+		void closeandprocabc(FILE*, int);
+		FILE* createabc(int);
+%}
+
+%x META ABC POEMA TIT
+%%
+					char* tit;
+					FILE *fabc;
+					int cabc = 0;
+
+<*>title:[ =*]*			{ BEGIN TIT; } 
+<*>\<abc\> 				{ BEGIN ABC; fabc = createabc(++cabc);}	
+
+<TIT>.+				 	{ fprintf(ftex,"\\section{%s}\n",yytext); BEGIN META;}
+
+<META>\n{2,} 			{ BEGIN POEMA; } 
+<META>.|\n 				{}
+
+
+<ABC>\<\/abc\> 			{ BEGIN POEMA; closeandprocabc(fabc,cabc); fprintf(ftex,"%%\\includegraphics[width=\\textwidth]{m%d.pdf}\n",cabc);} 
+
+<ABC>X:.*	 			{ fprintf(ftex, "%s", yytext); }
+<ABC>.|\n 				{ fprintf(ftex, "%s", yytext); } 
+
+<POEMA>\n 	 			{fprintf(ftex,"\\\\%s", yytext); }
+<POEMA>[_$\^#\[\]{}]	{}
+<POEMA>.				{fprintf(ftex,"%s", yytext); }
+
+%%
+void beginLatex(){
+	fprintf(ftex,"\\documentclass{article}\n\
+				  \\usepackage[utf8]{inputenc}\n\
+				  \\usepackage{graphicx}\n\
+				  \\begin{document}\n\
+				  \\tableofcontents"
+			);
+}
+
+void endLatex(){
+	fprintf(ftex,"\\end{document}");
+}
+
+void closeandprocabc(FILE* fabc, int c){
+	char comando[100];
+	fclose(fabc);
+	sprintf(comando,"abcm2ps -c -E m%d.abc",c);
+	system(comando);
+	sprintf(comando,"epstopdf Out001.eps --outfile=m%d.pdf",c);
+	system(comando);
+}
+
+FILE* createabc(int c){
+	char nome[50];
+	sprintf(nome,"m%d.abc",c);
+	return fopen(nome,"w");
+}
+
+int main() {
+	ftex = fopen("output.tex","w");
+	beginLatex(); 
+	yylex();
+	endLatex();
+	fclose(ftex);
+	return 0;
+}

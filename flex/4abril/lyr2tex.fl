@@ -1,0 +1,59 @@
+%option noyywrap
+%{
+		FILE* ftex;
+		void beginLatex();
+		void endLatex();
+		void closeandprocabc(FILE*, int);
+		FILE* createabc(int);
+%}
+
+%x META ABC POEMA TIT
+%%
+					char* tit;
+					FILE *fabc;
+					int cabc = 0;
+
+<*>title:[ =*]*			{ BEGIN TIT; } 
+<*>\<abc\> 				{ BEGIN ABC; fabc = createabc(++cabc);}	
+
+<TIT>.+				 	{ fprintf(ftex,"\\section{%s}\n",yytext); BEGIN META;}
+
+<META>\n{2,} 			{ BEGIN POEMA; } 
+<META>.|\n 				{}
+
+
+<ABC>\<\/abc\> 			{ BEGIN POEMA; closeandprocabc(fabc,cabc); fprintf(ftex,"%%\\includegraphics...\n");} 
+
+<ABC>X:.*	 			{ fprintf(ftex, "%s", yytext); }
+<ABC>.|\n 				{ fprintf(ftex, "%s", yytext); } 
+
+<POEMA>\n 	 			{fprintf(ftex,"\\\\%s", yytext); }
+<POEMA>.				{fprintf(ftex,"%s", yytext); }
+
+%%
+void beginLatex(){
+	fprintf(ftex,"\\documentclass{article} \\usepackage[utf-8]{inputenc} \\begin{document}");
+}
+
+void endLatex(){
+	fprintf(ftex,"\\end{document}");
+}
+
+void closeandprocabc(FILE* fabc, int c){
+	fclose(fabc);
+}
+
+FILE* createabc(int c){
+	char nome[50];
+	sprintf(nome,"m%d.abc",c);
+	return fopen(nome,"w");
+}
+
+int main() {
+	ftex = fopen("output.tex","w");
+	beginLatex(); 
+	yylex();
+	endLatex();
+	fclose(ftex);
+	return 0;
+}
